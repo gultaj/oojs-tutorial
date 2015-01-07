@@ -2,13 +2,16 @@
     background-color: #c6c6c6;
     height: 50px;
     padding: 5px;
+    clear: left;
+    margin-bottom: 5px;
 }
 
 .toolbar-item {
-    display: inline-block;
+    float:left;
     height: 50px;
     width: 50px;
     background-color: blue;
+    margin: 0 2px;
 }
 
 .active {
