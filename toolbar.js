@@ -1,13 +1,15 @@
 var oojs = (function(oojs) {
 
 	var ToolbarItem = function(toolbarElement) {
+		EventTarget.call(this);
+
 		Object.defineProperties(this, {
 			__el: {
 				value: toolbarElement
 			}
 		});
 	};
-	Object.defineProperties(ToolbarItem.prototype, {
+	ToolbarItem.prototype = Object.create(EventTarget.prototype, {
 		toggleActiveState: {
 			value: function() {
 				this.activated = !this.activated;
@@ -16,11 +18,20 @@ var oojs = (function(oojs) {
 		},
 		enabled: {
 			set: function(value) {
+				var currentValue = this.enabled;
+				if (currentValue === value) {
+					return;
+				}
 				if (value) {
 					this.__el.classList.remove("disabled");
 				} else {
 					this.__el.classList.add("disabled");
 				}
+
+				this.__fire({
+					type: "enabledchanged",
+					value: currentValue
+				});
 			},
 			get: function() {
 				return !this.__el.classList.contains("disabled");
@@ -29,11 +40,19 @@ var oojs = (function(oojs) {
 		},
 		activated: {
 			set: function(value) {
+				var currentValue = this.activated;
+				if (currentValue === value) {
+					return;
+				}
 				if (value) {
 					this.__el.classList.add("active");
 				} else {
 					this.__el.classList.remove("active");
 				}
+				this.__fire({
+					type: "activatedchanged",
+					value: value
+				});
 			},
 			get: function() {
 				return this.__el.classList.contains("active");
@@ -54,6 +73,8 @@ var oojs = (function(oojs) {
 	};
 
 	var Toolbar = function(toolbarElement) {
+		EventTarget.call(this);
+
 		var items = toolbarElement.querySelectorAll('.toolbar-item');
 
 		Object.defineProperties(this, {
@@ -66,7 +87,7 @@ var oojs = (function(oojs) {
 			}
 		});
 	};
-	Object.defineProperties(Toolbar.prototype, {
+	Toolbar.prototype = Object.create(EventTarget.prototype, {
 		add: {
 			value: function(options) {
 				var span = document.createElement('span');
@@ -76,6 +97,11 @@ var oojs = (function(oojs) {
 
 				var item = new ToolbarItem(span);
 				this.items.push(item);
+
+				this.__fire({
+					type: "itemadded",
+					item: item
+				});
 			},
 			enumerable: true
 		},
@@ -91,6 +117,10 @@ var oojs = (function(oojs) {
 				this.items.splice(index, 1);
 
 				item = null;
+
+				this.__fire({
+					type: "itemremoved"
+				});
 			},
 			enumerable: true
 
@@ -112,7 +142,7 @@ var oojs = (function(oojs) {
 			element.className = 'toolbar';
 		}
 
-		var toolbar = new Toolbar(element)
+		var toolbar = new Toolbar(element);
 		
 		return toolbar;
 	};

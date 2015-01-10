@@ -13,7 +13,16 @@
         <span class="toolbar-item"></span>
     </div>
 
-
+	<script src="eventtarget.js"></script>
     <script src="toolbar.js"></script>
+    <script>
+		var toolbar = oojs.createToolbar("myToolbar");
+		toolbar.addListener("itemadded", function(obj) {
+			console.log(obj.item);
+		});
+		toolbar.items[0].addListener("activatedchanged",function(obj) {
+			console.log(obj.value);
+		});
+    </script>
 </body>
 </html>
