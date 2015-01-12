@@ -1,5 +1,34 @@
 var oojs = (function(oojs) {
 
+	var ValueChangedEvent = function(type, value) {
+		EventType.call(this, type);
+
+		Object.defineProperties(this, "value", {
+			value: value,
+			enumerable: true
+		});
+	};
+	ValueChangedEvent.prototype = Object.create(EventType.prototype);
+
+	var ItemAddedEvent = function(type, item) {
+		EventType.call(this, type);
+		Object.defineProperties(this, "item", {
+			value: item,
+			enumerable: true
+		});
+	};
+	ItemAddedEvent.prototype = Object.create(EventType.prototype);
+
+	var ItemRemovedEvent = function(type, index) {
+		Event.call(this, type);
+		Object.defineProperty(this, "index", {
+			value: index,
+			enumerable: true
+		});
+	};
+	ItemRemovedEvent.prototype = Object.create(EventType.prototype);
+
+
 	var ToolbarItem = function(toolbarElement) {
 		EventTarget.call(this);
 
@@ -28,10 +57,7 @@ var oojs = (function(oojs) {
 					this.__el.classList.add("disabled");
 				}
 
-				this.__fire({
-					type: "enabledchanged",
-					value: currentValue
-				});
+				this.__fire(new ValueChangedEvent("enabledchanged", currentValue));
 			},
 			get: function() {
 				return !this.__el.classList.contains("disabled");
@@ -49,10 +75,7 @@ var oojs = (function(oojs) {
 				} else {
 					this.__el.classList.remove("active");
 				}
-				this.__fire({
-					type: "activatedchanged",
-					value: value
-				});
+				this.__fire(new ValueChangedEvent("activatedchanged", value));
 			},
 			get: function() {
 				return this.__el.classList.contains("active");
@@ -61,91 +84,86 @@ var oojs = (function(oojs) {
 		}
 	});
 
-	var createToolbarItems = function(itemElements) {
-		var items = [];
+var createToolbarItems = function(itemElements) {
+	var items = [];
 
-		[].forEach.call(itemElements, function(element, index) {
-			var item = new ToolbarItem(element);
-			items.push(item);
-		});
+	[].forEach.call(itemElements, function(element, index) {
+		var item = new ToolbarItem(element);
+		items.push(item);
+	});
 
-		return items;
-	};
+	return items;
+};
 
-	var Toolbar = function(toolbarElement) {
-		EventTarget.call(this);
+var Toolbar = function(toolbarElement) {
+	EventTarget.call(this);
 
-		var items = toolbarElement.querySelectorAll('.toolbar-item');
+	var items = toolbarElement.querySelectorAll('.toolbar-item');
 
-		Object.defineProperties(this, {
-			__el: {
-				value: toolbarElement
-			},
-			items: {
-				value: createToolbarItems(items),
-				enumerable: true
-			}
-		});
-	};
-	Toolbar.prototype = Object.create(EventTarget.prototype, {
-		add: {
-			value: function(options) {
-				var span = document.createElement('span');
-				span.className = 'toolbar-item';
-
-				this.__el.appendChild(span);
-
-				var item = new ToolbarItem(span);
-				this.items.push(item);
-
-				this.__fire({
-					type: "itemadded",
-					item: item
-				});
-			},
-			enumerable: true
+	Object.defineProperties(this, {
+		__el: {
+			value: toolbarElement
 		},
-		remove: {
-			value: function(index) {
-				if (index > this.items.length || index < 0) {
-					throw new Error('Index is out of range');
-				}
-
-				var item = this.items[index];
-
-				this.__el.removeChild(item.__el);
-				this.items.splice(index, 1);
-
-				item = null;
-
-				this.__fire({
-					type: "itemremoved"
-				});
-			},
-			enumerable: true
-
-		},
-		appendTo: {
-			value: function(parentElement) {
-				parentElement.appendChild(this.__el);
-			},
+		items: {
+			value: createToolbarItems(items),
 			enumerable: true
 		}
 	});
+};
+Toolbar.prototype = Object.create(EventTarget.prototype, {
+	add: {
+		value: function(options) {
+			var span = document.createElement('span');
+			span.className = 'toolbar-item';
 
-	oojs.createToolbar = function(elementId) {
-		var element = document.getElementById(elementId);
+			this.__el.appendChild(span);
 
-		if (!element) {
-			element = document.createElement('DIV');
-			element.id = elementId;
-			element.className = 'toolbar';
-		}
+			var item = new ToolbarItem(span);
+			this.items.push(item);
 
-		var toolbar = new Toolbar(element);
-		
-		return toolbar;
-	};
-	
-	return oojs;
+			this.__fire(new ItemAddedEvent("itemadded", item));
+		},
+		enumerable: true
+	},
+	remove: {
+		value: function(index) {
+			if (index > this.items.length || index < 0) {
+				throw new Error('Index is out of range');
+			}
+
+			var item = this.items[index];
+
+			this.__el.removeChild(item.__el);
+			this.items.splice(index, 1);
+
+			item = null;
+
+			this.__fire(new ItemRemovedEvent("itemremoved", index));
+		},
+		enumerable: true
+
+	},
+	appendTo: {
+		value: function(parentElement) {
+			parentElement.appendChild(this.__el);
+		},
+		enumerable: true
+	}
+});
+
+oojs.createToolbar = function(elementId) {
+	var element = document.getElementById(elementId);
+
+	if (!element) {
+		element = document.createElement('DIV');
+		element.id = elementId;
+		element.className = 'toolbar';
+	}
+
+	var toolbar = new Toolbar(element);
+
+	return toolbar;
+};
+
+return oojs;
 })(oojs || {});

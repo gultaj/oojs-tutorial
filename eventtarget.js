@@ -50,3 +50,16 @@ Object.defineProperties(EventTarget.prototype, {
 		}
 	}
 });
+
+var EventType = function(type) {
+	if (typeof type !== "string") {
+		throw new Error("Type must be a string");
+	}
+
+	Object.defineProperties(this, {
+		type: {
+			value: type,
+			enumerable: true
+		}
+	});
+};
